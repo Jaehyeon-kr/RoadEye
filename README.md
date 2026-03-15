@@ -5,26 +5,33 @@
 ## 기능
 
 ### 재생 제어
-- **재생 / 일시정지** — `PAUSE` 버튼 또는 `Space` 키로 토글
+- **재생 / 일시정지** — `PAUSE` 버튼 또는 `P` 키로 토글
 - **재생 속도 조절** — 0.25x ~ 4x (슬로우 모션 ~ 빨리감기), 설정 패널 또는 `+`/`-` 키
 - **해상도 변경** — 320×240, 400×300, 640×480, 800×600 중 실시간 전환
 
 ### 녹화
-- **영상 녹화** — `REC` 버튼 또는 `R` 키로 녹화 시작/중지 (MP4, mp4v 코덱)
+- **영상 녹화** — `REC` 버튼 또는 `Space`/`R` 키로 녹화 시작/중지 (MP4, mp4v 코덱)
 - **스크린샷** — `SNAP` 버튼 또는 `S` 키로 현재 프레임을 PNG로 저장
 - 파일명은 타임스탬프 기반 자동 생성 (예: `rec_20260315_143022.mp4`, `snap_20260315_143025.png`)
 
+### Vehicle Trail (차량 궤적 합성)
+- **TRAIL 버튼** — 설정 패널에서 클릭하면 최근 녹화 영상을 분석
+- 영상 전체에서 `BackgroundSubtractorMOG2`로 배경을 학습하고, 매 프레임의 차량(전경)을 추출
+- 전체 영상의 차량 움직임을 **10초짜리 압축 영상**으로 합성 (`trail_*.mp4`)
+- 모든 차량이 하나의 배경 위에 나타나는 **스냅샷 이미지**도 생성 (`trail_*.png`)
+
 ### GUI
 - **컨트롤바** — 하단 반투명 바에 REC, PAUSE, STOP, SNAP, SETTINGS 버튼 배치
-- **설정 패널** — 속도·해상도를 `+`/`-` 버튼으로 조절하는 팝업 패널
+- **설정 패널** — 속도·해상도 `+`/`-` 버튼 + TRAIL 버튼
 - **상태 표시** — 녹화 중 빨간 REC 점, 일시정지 오버레이, 현재 속도 표시
 
 ### 단축키
 
 | 키 | 동작 |
 |-----|------|
-| `Space` | 일시정지 토글 |
-| `R` | 녹화 토글 |
+| `Space` | 녹화(Record) 토글 |
+| `R` | 녹화(Record) 토글 |
+| `P` | 일시정지 토글 |
 | `S` | 스크린샷 |
 | `+` / `=` | 속도 증가 |
 | `-` | 속도 감소 |
@@ -58,6 +65,13 @@ RTSP 스트림 → VideoCapture → 프레임 읽기 루프 → 리사이즈 →
 | `draw_settings_panel(img)` | 설정 패널 렌더링 — 속도·해상도 조절 `+`/`-` 버튼 포함 |
 | `draw_status_bar(img)` | 상단 상태 표시 — REC 인디케이터, PAUSED 오버레이, 현재 속도 |
 
+#### `editor.py` — 차량 궤적 합성
+| 함수/클래스 | 설명 |
+|-------------|------|
+| `get_latest_video()` | `records/` 폴더에서 가장 최근 녹화 파일 경로 반환 |
+| `generate_trail(video_path, out_duration)` | 영상 전체의 차량을 추출하여 `out_duration`초 압축 영상 + 스냅샷 생성 |
+| `show_trail(video_path, out_duration)` | Trail 영상을 생성한 뒤 루프 재생으로 미리보기 |
+
 ### 상태 관리
 
 모든 상태는 `state` 딕셔너리로 중앙 관리됩니다:
@@ -70,6 +84,7 @@ state = {
     "resolution_idx": 1,    # 해상도 인덱스 (RESOLUTIONS 리스트)
     "show_settings": False, # 설정 패널 표시 여부
     "screenshot": False,    # 스크린샷 요청 플래그
+    "trail": False,         # Trail 합성 요청 플래그
 }
 ```
 
@@ -77,20 +92,22 @@ state = {
 
 ## 스크린샷
 
-> TODO: 실행 화면 스크린샷을 여기에 추가하세요.
->
-> ```
-> ![screenshot](screenshot.png)
-> ```
+- 녹화
+> ![screenshot](./images/screenshot.png)
+
+
+- Trail 
+> ![screenshot2](./records/trail_rec_20260315_175937.png)
+
 
 ## 실행 방법
 
 ```bash
 pip install opencv-python
-python ass1.py
+python main.py
 ```
 
 ## 요구 사항
 
-- Python 3.x
+- Python 3.10 이상
 - OpenCV (`opencv-python`)

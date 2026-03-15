@@ -1,7 +1,8 @@
 import cv2 as cv
-from controls import state, FIGSIZE, RESOLUTIONS, SPEEDS, on_mouse, handle_key
+from controls import state, get_figsize, RESOLUTIONS, on_mouse, handle_key
 from ui import draw_status_bar, draw_control_bar, draw_settings_panel
 from recorder import Recorder
+from editor import show_trail
 
 VIDEO_URL = "rtsp://210.99.70.120:1935/live/cctv001.stream"
 
@@ -19,7 +20,7 @@ def main():
 
     recorder = Recorder(fps)
 
-    cv.namedWindow("Video Player")
+    cv.namedWindow("Video Player", cv.WINDOW_NORMAL)
     cv.setMouseCallback("Video Player", on_mouse)
 
     while True:
@@ -28,7 +29,8 @@ def main():
             key = cv.waitKey(30)
             if key == 27:
                 break
-            handle_key(key)
+            elif key == ord('p') or key == ord(' '):
+                state["paused"] = False
             continue
 
         # 빨리감기: 속도에 따라 프레임 스킵
@@ -40,10 +42,14 @@ def main():
         if not valid:
             break
 
-        # 해상도 적용
-        cur_res = RESOLUTIONS[state["resolution_idx"]]
-        img = cv.resize(img, cur_res)
-        img = cv.resize(img, FIGSIZE)
+        # 현재 해상도로 리사이즈
+        figsize = get_figsize()
+        img = cv.resize(img, figsize)
+
+        # Trail 요청 처리
+        if state["trail"]:
+            state["trail"] = False
+            show_trail()
 
         # 녹화 & 스크린샷 (UI 그리기 전)
         recorder.update(img)

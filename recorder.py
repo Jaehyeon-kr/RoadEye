@@ -1,7 +1,7 @@
 import cv2 as cv
 import datetime
 import os
-from controls import OUTPUT_DIR, FIGSIZE, state
+from controls import OUTPUT_DIR, get_figsize, state
 
 
 def get_output_path():
@@ -25,7 +25,8 @@ class Recorder:
     def update(self, frame):
         if state["recording"] and not self.prev_recording:
             self.output_path = get_output_path()
-            self.writer = cv.VideoWriter(self.output_path, self.fourcc, self.fps, FIGSIZE)
+            figsize = get_figsize()
+            self.writer = cv.VideoWriter(self.output_path, self.fourcc, self.fps, figsize)
             print(f"Recording started -> {self.output_path}")
         elif not state["recording"] and self.prev_recording:
             self.writer.release()
